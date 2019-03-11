@@ -1,0 +1,20 @@
+#' Prepare data for local projections.
+#'
+#' \code{create_projection_data} prepares the data used for computing projections.
+#'
+#' \code{create_projection_data} takes the original data and adds lags, dlags and future
+#' changes of the relevant variables. This is the data set on which then projections can
+#' be computed on.
+#'
+#' @param data_obj The data to be used for the projections
+#' @param shock_var The shock variable
+#' @param lagged_vars The variables included as lags on the RHS
+#' @param proj_horizon The time horizon for the projections, 8 by defauls
+#' @param id_vars The id vars for the underlying panel data; should be given as variable name or index
+#' @return A data frame to be used for local projection estimation
+create_projection_data <- function(data_obj, shock_var, lagged_vars, proj_horizon=8, id_vars=c("Country", "Year")){
+  data_obj_new <- dplyr::select(data_obj, one_of(id_vars, unique(c(shock_var, lagged_vars))))
+  data_obj_new <- add_lags(data_obj_new, unique(c(shock_var, lagged_vars)))
+  data_obj_new <- add_k(data_obj_new, shock_var)
+  return(data_obj_new)
+}
