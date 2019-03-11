@@ -7,15 +7,16 @@
 #' be computed on.
 #'
 #' @param data_obj The data to be used for the projections
+#' @param dependent_var The dependent variable for the estimation
 #' @param shock_var The shock variable
 #' @param lagged_vars The variables included as lags on the RHS
 #' @param proj_horizon The time horizon for the projections, 8 by defauls
 #' @param id_vars The id vars for the underlying panel data; should be given as variable name or index
 #' @return A data frame to be used for local projection estimation
-create_projection_data <- function(data_obj, shock_var, lagged_vars, proj_horizon=8, id_vars=c("Country", "Year")){
-  data_obj_new <- dplyr::select(data_obj, one_of(id_vars, unique(c(shock_var, lagged_vars))))
-  data_obj_new <- add_lags(data_obj_new, unique(c(shock_var, lagged_vars)))
-  data_obj_new <- add_k(data_obj_new, shock_var)
+create_projection_data <- function(data_obj, dependent_var, shock_var, lagged_vars, proj_horizon=8, id_vars=c("Country", "Year")){
+  data_obj_new <- dplyr::select(data_obj, dplyr::one_of(id_vars, unique(c(dependent_var, shock_var, lagged_vars))))
+  data_obj_new <- add_lags(data_obj_new, unique(c(dependent_var, shock_var, lagged_vars)))
+  data_obj_new <- add_k(data_obj_new, dependent_var)
   return(data_obj_new)
 }
 
