@@ -69,23 +69,22 @@ get_projections <- function(data_obj,
       effect = reg_effect
     )
 
-    # TODO: HOW DOES THIS WORK?
-    # TODO: Add FE later
-    # fe_estimates_list[[k]] <- data.frame(
-    #   country = countrycode(names(fixef(projection_list[[k_]])), "country.name", "iso3c"),
-    #   k = fixef(projection_list[[k_]]),
-    #   row.names = NULL
-    # )
+    fe_frame <- data.frame(
+      csu = names(plm::fixef(projection_list[[k]])),
+      placeholder = plm::fixef(projection_list[[k]]),
+      row.names = NULL
+    )
+    names(fe_frame) <- c("csu", k)
+    fe_estimates_list[[k]] <- fe_frame
   }
-  # fe_estimates_frame <- fe_estimates_list %>%
-  #   purrr::reduce(left_join, by = "country") %>%
-  #   dplyr::mutate(var = var_name)
-  # names(fe_estimates_frame) <- c("country", projections, "var")
+  fe_estimates_frame <- fe_estimates_list %>%
+    purrr::reduce(dplyr::left_join, by = "csu") %>%
+    dplyr::mutate(var = dep_var)
+
   return_list[["projections"]] <- projection_list
-  # return_list[["fe_estimates"]] <- fe_estimates_frame
+  return_list[["fe_estimates"]] <- fe_estimates_frame
   return_list[["impulse_plot"]] <- create_plot(projection_list,
-                                               g_title = as.character(regression_formula) #,# gsub("_", " ", var_name),
-                                               #g_y_axis = ylabel_plot, label_size = lab_size
+                                               g_title = as.character(regression_formula)
   )
   return(return_list)
 }
