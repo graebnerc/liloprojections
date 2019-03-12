@@ -26,13 +26,13 @@ create_plot <- function(projections_list,
 
   for (k in names(projections_list)) {
     coefs[[k]] <- lmtest::coeftest(projections_list[[k]],
-                           vcov = function(x) vcovBK(x,
+                           vcov = function(x) plm::vcovBK(x,
                                                      type = "HC1",
                                                      cluster = "group"
                            )
     )[1, 1]
     ses[[k]] <- lmtest::coeftest(projections_list[[k]],
-                         vcov = function(x) vcovBK(x,
+                         vcov = function(x) plm::vcovBK(x,
                                                    type = "HC1",
                                                    cluster = "group"
                          )
@@ -49,9 +49,9 @@ create_plot <- function(projections_list,
     Year = 0:8, row.names = NULL
   )
 
-  final_plot <- ggplot(plot_frame, aes(x = Year, y = coef)) +
-    geom_ribbon(
-      data = plot_frame, aes(
+  final_plot <- ggplot2::ggplot(plot_frame, ggplot2::aes(x = Year, y = coef)) +
+    ggplot2::geom_ribbon(
+      data = plot_frame, ggplot2::aes(
         ymin = lowerbound,
         ymax = upperbound,
         linetype = NA
@@ -60,24 +60,24 @@ create_plot <- function(projections_list,
       fill = "#acb6c0",
       color = "#acb6c0"
     ) +
-    geom_abline(intercept = 0, slope = 0, colour = "#1e3752", linetype = 2) +
-    geom_line(colour = "#1e3752", size=1.2) +
-    labs(
+    ggplot2::geom_abline(intercept = 0, slope = 0, colour = "#1e3752", linetype = 2) +
+    ggplot2::geom_line(colour = "#1e3752", size=1.2) +
+    ggplot2::labs(
       x = "Year",
       y = g_y_axis,
       title = g_title
     ) +
-    scale_x_continuous(
+    ggplot2::scale_x_continuous(
       limits = c(0, 8),
       expand = c(0, 0)
     ) +
-    theme(
-      panel.background = element_rect(fill = "white"),
-      panel.border = element_blank(),
-      axis.line = element_line(),
-      title = element_text(size = label_size+1),
-      axis.text = element_text(size = label_size-1),
-      axis.title = element_text(size = label_size)
+    ggplot2::theme(
+      panel.background = ggplot2::element_rect(fill = "white"),
+      panel.border = ggplot2::element_blank(),
+      axis.line = ggplot2::element_line(),
+      title = ggplot2::element_text(size = label_size+1),
+      axis.text = ggplot2::element_text(size = label_size-1),
+      axis.title = ggplot2::element_text(size = label_size)
     )
 
   return(final_plot)
