@@ -16,7 +16,7 @@
 create_projection_data <- function(data_obj, dependent_var, shock_var, lagged_vars, proj_horizon=8, id_vars=c("Country", "Year")){
   data_obj_new <- dplyr::select(data_obj, dplyr::one_of(id_vars, unique(c(dependent_var, shock_var, lagged_vars))))
   data_obj_new <- add_lags(data_obj_new, unique(c(dependent_var, shock_var, lagged_vars)), id_vars)
-  data_obj_new <- add_k(data_obj_new, dependent_var)
+  data_obj_new <- add_k(data_obj_new, dependent_var, id_vars, k_horizon = 8)
   return(data_obj_new)
 }
 
@@ -61,14 +61,16 @@ add_lags <- function(data_obj, var_names, id_vars){
 #' @param k_horizon The number of time steps for the projections
 #' @return Modified tibble with the ks added as new columns
 # TODO: Ein grouping muss einfuehrt werden
-add_k <- function(data_obj, dependent_var, k_horizon=8){
+add_k <- function(data_obj, dependent_var, id_vars, k_horizon=8){
   data_obj_new <- data_obj
-for (k in 1:k_horizon) {
-  data_obj_new <- data_obj_new %>%
-    dplyr::mutate(UQ(as.name(paste0("k_", k))) := dplyr::lead(
-      UQ(as.name(dependent_var)),
-      n = k
-    ) - UQ(as.name(dependent_var)))
-}
+  for (k in 1:k_horizon) {
+    data_obj_new <- data_obj_new %>%
+      dplyr::group_by(UQ(as.name(id_vars[1]))) %>%
+      dplyr::mutate(UQ(as.name(paste0("k_", k))) := dplyr::lead(
+        UQ(as.name(dependent_var)),
+        n = k
+      ) - UQ(as.name(dependent_var))) %>%
+      dplyr::ungroup()
+  }
   return(data_obj_new)
 }
