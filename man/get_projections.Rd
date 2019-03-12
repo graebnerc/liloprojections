@@ -6,7 +6,7 @@
 \usage{
 get_projections(data_obj, regression_formula, projection_horizon = 8,
   id_vars = c("Country", "Year"), reg_model = "within",
-  reg_effect = "twoways")
+  reg_effect = "twoways", return_intermediate_data = F)
 }
 \arguments{
 \item{data_obj}{The data for the projections}

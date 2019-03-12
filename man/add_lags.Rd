@@ -4,7 +4,7 @@
 \alias{add_lags}
 \title{Adding lags and dlags to projection data.}
 \usage{
-add_lags(data_obj, var_names)
+add_lags(data_obj, var_names, id_vars)
 }
 \arguments{
 \item{data_obj}{A data frame or related object with the raw data}
