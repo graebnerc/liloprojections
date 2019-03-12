@@ -8,11 +8,8 @@
 #' a plot with the resulting impulse response function.
 #'
 #' @param data_obj The data for the projections
-#' @param dep_var The dependent variable in the estimation
-#' @param shock_var The shock variable in the estimation
-#' @param control_var The control variables; will be included as level and dlag
-#'   by default
-#' @param regression_formula The general regression formula as character
+#' @param regression_formula The general regression formula as character;
+#'   the shock variable must be the first variable on the RHS
 #' @param projection_horizon The horizon for which projections should be
 #'   computed (8 by default)
 #' @param id_var The identifier variables in data_obj as strings;
@@ -23,33 +20,23 @@
 #' @param reg_effect The effects considered in the regression; should match
 #'   one of the plm options; by default both time and cross sectional fixed
 #'   effects are included
-#' @param dat_origins TODO: write help
-#' @param eq_formula_remainder TODO: write help
-#' @param ylabel_plot TODO: write help
-#' @param lab_size TODO: write help
-#' @param ready_data TODO: write help
-#' @param start_year TODO: write help
-#' @param transform_country_code TODO: write help
-#' @return A list TODO: write help
+#' @return A list with three elements: [["projections"]] contains estimations,
+#'    [["impulse_plot"]] contains a ggplot2 object with the impulse response
+#'    [["fe_estimates"]] contain the FE estimates.
 get_projections <- function(data_obj,
                             regression_formula,
                             projection_horizon=8,
                             id_vars=c("Country", "Year"),
                             reg_model="within",
                             reg_effect="twoways"){
-                            #dat_origins,
-                            #eq_formula_remainder,
-                            #ylabel_plot = "change in perc. p.",
-                            #lab_size=10,
-                            #ready_data=F, # set to true if dat_origins contains the final projection data
-                            #start_year=0,
-                            # transform_country_code=F) { # only years greater or equal to this year are considered
   return_list <- list()
+
   # Check input
   if (!is.character(regression_formula)){
     stop(paste0("Regression formula should by given as string, but is:",
                 typeof(regression_formula)))
   }
+
   # Disect regression equation
   regression_formula <- gsub(" ", "", regression_formula)
   dep_var <- sub("~.*", "", regression_formula)
@@ -66,6 +53,7 @@ get_projections <- function(data_obj,
     proj_horizon = projection_horizon,
     id_vars = id_vars)
 
+  # Estimate projections
   projections <- paste0("k_", 1:projection_horizon)
   projection_list <- list()
   fe_estimates_list <- list()
