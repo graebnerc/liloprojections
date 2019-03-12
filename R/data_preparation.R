@@ -59,7 +59,7 @@ add_k <- function(data_obj, dependent_var, k_horizon=8){
   data_obj_new <- data_obj
 for (k in 1:k_horizon) {
   data_obj_new <- data_obj_new %>%
-    dplyr::mutate(UQ(as.name(paste0("k.", k))) := dplyr::lead(
+    dplyr::mutate(UQ(as.name(paste0("k_", k))) := dplyr::lead(
       UQ(as.name(dependent_var)),
       n = k
     ) - UQ(as.name(dependent_var)))
