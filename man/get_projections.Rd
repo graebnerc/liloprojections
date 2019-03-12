@@ -4,36 +4,40 @@
 \alias{get_projections}
 \title{Estimate local projections}
 \usage{
-get_projections(var_cons, countries_considered, dat_origins,
-  eq_formula_remainder, ylabel_plot = "change in perc. p.",
-  lab_size = 10, ready_data = F, start_year = 0,
-  transform_country_code = F)
+get_projections(data_obj, regression_formula, projection_horizon = 8,
+  id_vars = c("Country", "Year"), reg_model = "within",
+  reg_effect = "twoways")
 }
 \arguments{
-\item{var_cons}{TODO: write help}
+\item{data_obj}{The data for the projections}
 
-\item{countries_considered}{TODO: write help}
+\item{regression_formula}{The general regression formula as character;
+the shock variable must be the first variable on the RHS}
 
-\item{dat_origins}{TODO: write help}
+\item{projection_horizon}{The horizon for which projections should be
+computed (8 by default)}
 
-\item{eq_formula_remainder}{TODO: write help}
+\item{reg_model}{The model to be used in the regression; should match one
+of the plm options; by default, the within estimator is used}
 
-\item{ylabel_plot}{TODO: write help}
+\item{reg_effect}{The effects considered in the regression; should match
+one of the plm options; by default both time and cross sectional fixed
+effects are included}
 
-\item{lab_size}{TODO: write help}
-
-\item{ready_data}{TODO: write help}
-
-\item{start_year}{TODO: write help}
-
-\item{transform_country_code}{TODO: write help}
+\item{id_var}{The identifier variables in data_obj as strings;
+cross sectional dimension comes before the time dimension;
+by defaul c("Country", "Year") is used}
 }
 \value{
-A list TODO: write help
+A list with three elements: [["projections"]] contains estimations,
+   [["impulse_plot"]] contains a ggplot2 object with the impulse response
+   [["fe_estimates"]] contain the FE estimates.
 }
 \description{
-\code{get_projections}
+\code{get_projections} estimates linear local projections.
 }
 \details{
-\code{get_projections}
+\code{get_projections} estimates linear local projections and returns the
+estimation object, the FE estimates of the underlying estimations and
+a plot with the resulting impulse response function.
 }
