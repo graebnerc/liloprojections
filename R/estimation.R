@@ -28,7 +28,8 @@ get_projections <- function(data_obj,
                             projection_horizon=8,
                             id_vars=c("Country", "Year"),
                             reg_model="within",
-                            reg_effect="twoways"){
+                            reg_effect="twoways",
+                            return_intermediate_data=F){
   return_list <- list()
 
   # Check input
@@ -89,5 +90,8 @@ get_projections <- function(data_obj,
   return_list[["impulse_plot"]] <- create_plot(projection_list,
                                                g_title = as.character(regression_formula)
   )
+  if (return_intermediate_data){
+    return_list[["estimation_data"]] <- estimation_data
+  }
   return(return_list)
 }
