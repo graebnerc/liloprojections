@@ -15,7 +15,7 @@
 #' @return A data frame to be used for local projection estimation
 create_projection_data <- function(data_obj, dependent_var, shock_var, lagged_vars, proj_horizon=8, id_vars=c("Country", "Year")){
   data_obj_new <- dplyr::select(data_obj, dplyr::one_of(id_vars, unique(c(dependent_var, shock_var, lagged_vars))))
-  data_obj_new <- add_lags(data_obj_new, unique(c(dependent_var, shock_var, lagged_vars)))
+  data_obj_new <- add_lags(data_obj_new, unique(c(dependent_var, shock_var, lagged_vars)), id_vars)
   data_obj_new <- add_k(data_obj_new, dependent_var)
   return(data_obj_new)
 }
@@ -32,12 +32,17 @@ create_projection_data <- function(data_obj, dependent_var, shock_var, lagged_va
 #'   be added
 #' @return A tibble that contains all original variables, as well as lags and
 #'   dlags of the selected variable
-add_lags <- function(data_obj, var_names){
+add_lags <- function(data_obj, var_names, id_vars){
   data_obj_new <- data_obj
   for (var_name in var_names){
     data_obj_new <- data_obj_new %>%
-      dplyr::mutate(UQ(as.name(paste0(var_name, "_LAG"))) := dplyr::lag(UQ(as.name(var_name)), n = 1),
-                    UQ(as.name(paste0(var_name, "_DLAG"))) := dplyr::lag(UQ(as.name(var_name)), n = 1) - dplyr::lag(UQ(as.name(var_name)), n = 2))
+      dplyr::group_by(UQ(as.name(id_vars[1]))) %>%
+      dplyr::mutate(UQ(as.name(paste0(var_name, "_LAG"))) := dplyr::lag(
+        UQ(as.name(var_name)), n = 1),
+                    UQ(as.name(paste0(var_name, "_DLAG"))) := dplyr::lag(
+                      UQ(as.name(var_name)), n = 1) - dplyr::lag(
+                        UQ(as.name(var_name)), n = 2)) %>%
+      dplyr::ungroup()
   }
   return(data_obj_new)
 }
@@ -55,6 +60,7 @@ add_lags <- function(data_obj, var_names){
 #' @param dependent_var The dependent variable as a string
 #' @param k_horizon The number of time steps for the projections
 #' @return Modified tibble with the ks added as new columns
+# TODO: Ein grouping muss einfuehrt werden
 add_k <- function(data_obj, dependent_var, k_horizon=8){
   data_obj_new <- data_obj
 for (k in 1:k_horizon) {
