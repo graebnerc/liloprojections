@@ -39,8 +39,11 @@ get_projections <- function(data_obj,
 
   # Disect regression equation
   regression_formula <- gsub(" ", "", regression_formula)
-  dep_var <- sub("~.*", "", regression_formula)
-  remainder <- strsplit(sub(".*~", "", regression_formula), "\\+")[[1]]
+
+  regression_formula_red <- gsub("_DLAG", "", regression_formula)
+  regression_formula_red <- gsub("_LAG", "", regression_formula_red)
+  dep_var <- sub("~.*", "", regression_formula_red)
+  remainder <- unique(strsplit(sub(".*~", "", regression_formula_red), "\\+")[[1]])
   shock_var <- remainder[1]
   control_var <- remainder[2:length(remainder)]
 
@@ -60,7 +63,7 @@ get_projections <- function(data_obj,
 
   for (k in projections) {
     print(k)
-    current_formula <- as.formula(gsub(dep_var, k, regression_formula))
+    current_formula <- as.formula(sub(dep_var, k, regression_formula))
     projection_list[[k]] <- plm::plm(
       formula = current_formula,
       data = estimation_data,
