@@ -25,13 +25,13 @@ create_plot <- function(projections_list,
   )
 
   for (k in names(projections_list)) {
-    coefs[[k]] <- coeftest(projections_list[[k]],
+    coefs[[k]] <- lmtest::coeftest(projections_list[[k]],
                            vcov = function(x) vcovBK(x,
                                                      type = "HC1",
                                                      cluster = "group"
                            )
     )[1, 1]
-    ses[[k]] <- coeftest(projections_list[[k]],
+    ses[[k]] <- lmtest::coeftest(projections_list[[k]],
                          vcov = function(x) vcovBK(x,
                                                    type = "HC1",
                                                    cluster = "group"
