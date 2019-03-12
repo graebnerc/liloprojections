@@ -72,9 +72,9 @@ get_projections <- function(data_obj,
 
   for (k in projections) {
     print(k)
-    current_formula <- gsub(pattern = "Capital_accumulation", replacement = "k_x", x = xx)
+    current_formula <- as.formula(gsub(dep_var, k, regression_formula))
     projection_list[[k]] <- plm::plm(
-      formula = regression_formula,
+      formula = current_formula,
       data = estimation_data,
       index = id_vars,
       model = reg_model,
