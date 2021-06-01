@@ -23,6 +23,8 @@
 #' @param return_intermediate_data opt., FALSE by default: also return
 #'  intermediate data
 #' @param verbose opt., FALSE by default: if TRUE, print progress information
+#' @param min_obs_i opt., 0 by default: if fewer than this nb of cross sect
+#'  obs have variation in the shock variable, an error is thrown
 #' @return A list with three elements: [["projections"]] contains estimations,
 #'    [["impulse_plot"]] contains a ggplot2 object with the impulse response
 #'    [["fe_estimates"]] contain the FE estimates.
@@ -33,7 +35,8 @@ get_projections <- function(data_obj,
                             reg_model="within",
                             reg_effect="twoways",
                             return_intermediate_data=FALSE,
-                            verbose=FALSE){
+                            verbose=FALSE,
+                            min_obs_i=0){
   return_list <- list()
 
   # Check input
@@ -70,7 +73,7 @@ get_projections <- function(data_obj,
   shock_unique <- dplyr::group_by(shock_unique, !!as.name(id_vars[1]))
   shock_unique <- dplyr::tally(shock_unique)
   units_wo_variation <- dplyr::filter(shock_unique, n<2)[[id_vars[1]]]
-  if (sum(shock_unique$n > 1) < 5){
+  if (sum(shock_unique$n > 1) <= min_obs_i){
     mes <- paste0("Less than five cross sectional units with ",
                   "variation in shock variable: ", shock_var)
     stop(mes)
