@@ -20,6 +20,9 @@
 #' @param reg_effect The effects considered in the regression; should match
 #'   one of the plm options; by default both time and cross sectional fixed
 #'   effects are included
+#' @param return_intermediate_data opt., FALSE by default: also return
+#'  intermediate data
+#' @param verbose opt., FALSE by default: if TRUE, print progress information
 #' @return A list with three elements: [["projections"]] contains estimations,
 #'    [["impulse_plot"]] contains a ggplot2 object with the impulse response
 #'    [["fe_estimates"]] contain the FE estimates.
@@ -29,7 +32,8 @@ get_projections <- function(data_obj,
                             id_vars=c("Country", "Year"),
                             reg_model="within",
                             reg_effect="twoways",
-                            return_intermediate_data=F){
+                            return_intermediate_data=FALSE,
+                            verbose=FALSE){
   return_list <- list()
 
   # Check input
@@ -57,13 +61,38 @@ get_projections <- function(data_obj,
     proj_horizon = projection_horizon,
     id_vars = id_vars)
 
+  # Test whether there is variability in the shock variable
+  data.table::setDT(estimation_data)
+  shock_unique <- estimation_data[complete.cases(estimation_data),]
+  shock_unique <- dplyr::select(
+    shock_unique, dplyr::all_of(c(shock_var, id_vars[1])))
+  shock_unique <- unique(shock_unique)
+  shock_unique <- dplyr::group_by(shock_unique, !!as.name(id_vars[1]))
+  shock_unique <- dplyr::tally(shock_unique)
+  units_wo_variation <- dplyr::filter(shock_unique, n<2)[[id_vars[1]]]
+  if (sum(shock_unique$n > 1) < 5){
+    mes <- paste0("Less than five cross sectional units with ",
+                  "variation in shock variable: ", shock_var)
+    stop(mes)
+  } else if (length(units_wo_variation)>0){
+    estimation_data <- dplyr::filter(
+      estimation_data, !(!!as.name(id_vars[1]) %in% units_wo_variation))
+
+    mes <- paste0(
+      "Remove the following cross-sectional units due ",
+      "to lack of variation in shock variable: ",
+      paste(units_wo_variation, collapse = ", "), "\n")
+    warning(mes)
+  }
+
   # Estimate projections
   projections <- paste0("k_", 1:projection_horizon)
   projection_list <- list()
   fe_estimates_list <- list()
 
   for (k in projections) {
-    print(k)
+    if (verbose){print(k)}
+
     current_formula <- as.formula(sub(dep_var, k, regression_formula))
     projection_list[[k]] <- plm::plm(
       formula = current_formula,
@@ -72,6 +101,13 @@ get_projections <- function(data_obj,
       model = reg_model,
       effect = reg_effect
     )
+    # Raise error if the shock variable is not the first parameter estimated:
+    if (names(coef(projection_list[[k]]))[1] != shock_var){
+      mes <- paste0("Effect of shock variable (", shock_var,
+                    ")not correctly estimated for unknown reason.")
+      stop(mes)
+    }
+
 
     fe_frame <- data.frame(
       csu = names(plm::fixef(projection_list[[k]])),
@@ -87,8 +123,9 @@ get_projections <- function(data_obj,
 
   return_list[["projections"]] <- projection_list
   return_list[["fe_estimates"]] <- fe_estimates_frame
-  return_list[["impulse_plot"]] <- create_plot(projection_list,
-                                               g_title = as.character(regression_formula)
+  return_list[["impulse_plot"]] <- create_plot(
+    projection_list,
+    g_title = as.character(regression_formula)
   )
   if (return_intermediate_data){
     return_list[["estimation_data"]] <- estimation_data
