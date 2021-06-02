@@ -1,13 +1,14 @@
 Package: liloprojections
 Type: Package
 Title: Estimation of linear local projections
-Version: 0.0.0.9000
-Authors@R: person("Claudius", "Graebner", email = "claudius@claudius-graebner.com",
-                  role = c("aut", "cre"))
+Version: 0.0.0.9001
+Authors@R: person("Claudius", "Graebner", 
+  email = "claudius@claudius-graebner.com",
+  role = c("aut", "cre"))
 Description: The package implement the local projection method introduced by
     Jorda (2005) for linear cases.
     DOI of Jorda (2005): 10.1257/0002828053828518
-License: GPL-3
+License: MIT + file LICENSE
 Encoding: UTF-8
 URL: https://github.com/graebnerc/liloprojections
 BugReports: https://github.com/graebnerc/liloprojections/issues
