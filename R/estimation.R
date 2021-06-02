@@ -80,7 +80,6 @@ get_projections <- function(data_obj,
   } else if (length(units_wo_variation)>0){
     estimation_data <- dplyr::filter(
       estimation_data, !(!!as.name(id_vars[1]) %in% units_wo_variation))
-
     mes <- paste0(
       "Remove the following cross-sectional units due ",
       "to lack of variation in shock variable: ",
@@ -106,11 +105,51 @@ get_projections <- function(data_obj,
     )
     # Raise error if the shock variable is not the first parameter estimated:
     if (names(coef(projection_list[[k]]))[1] != shock_var){
-      mes <- paste0("Effect of shock variable (", shock_var,
-                    ")not correctly estimated for unknown reason.")
-      stop(mes)
-    }
+      data.table::setDT(estimation_data)
+      estimation_data_red <- estimation_data[, .SD, .SD = c(id_vars, shock_var)]
+      # Are all elements the same at each time step for each individual?
+      time_min <- min(estimation_data_red[[id_vars[2]]])
+      time_max <- max(estimation_data_red[[id_vars[2]]])
+      no_betw_var <- nrow(unique(
+        estimation_data_red, by=c(id_vars[2], shock_var))
+        ) == length(time_min:time_max)
+      if(reg_model=="within" & (
+        reg_effect %in% c("twoways", "time")) & no_betw_var){
+        mes <- paste0("Effect of shock variable (", shock_var,
+                      ") not correctly estimated. There is no variation across",
+                      " cross sectional units, yet time fixed effects are ",
+                      "included -> estimation fails due to collinearity.",
+                      "Continue with individual effects only...")
+        if (k==projections[1]){warning(mes)}
 
+        projection_list[[k]] <- plm::plm(
+          formula = current_formula,
+          data = estimation_data,
+          index = id_vars,
+          model = reg_model,
+          effect = "individual"
+        )
+        if (names(coef(projection_list[[k]]))[1] != shock_var){
+          mes <- paste0("Effect of shock variable (", shock_var,
+                        ") not correctly estimated for unknown reason.",
+                        "Return list with k1 projection and estimation data.")
+          warning(mes)
+
+          return_list[["projections"]] <- projection_list
+          return_list[["estimation_data"]] <- estimation_data
+          return(return_list)
+        }
+      } else{
+        mes <- paste0("Effect of shock variable (", shock_var,
+                      ") not correctly estimated for unknown reason.",
+                      "Return list with k1 projection and estimation data.")
+        warning(mes)
+
+        return_list[["projections"]] <- projection_list
+        return_list[["estimation_data"]] <- estimation_data
+        return(return_list)
+      }
+    }
 
     fe_frame <- data.frame(
       csu = names(plm::fixef(projection_list[[k]])),
